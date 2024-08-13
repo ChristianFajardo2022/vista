@@ -1,68 +1,76 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as faceapi from 'face-api.js';
-import Video from "../src/assets/playa.mp4"
-
-
+import Video from "../src/assets/playa.mp4";
 
 const VideoPlayer = () => {
   const videoRef = useRef(null);
-  const canvasRef = useRef(null);
   const [isHumanDetected, setIsHumanDetected] = useState(false);
 
   useEffect(() => {
     const loadModels = async () => {
-      await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-      await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+      try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+      } catch (err) {
+        console.error('Error loading models:', err);
+      }
     };
 
     loadModels();
     startCamera();
-
-    videoRef.current.addEventListener('play', () => {
-      const canvas = faceapi.createCanvasFromMedia(videoRef.current);
-      canvasRef.current.append(canvas);
-      const displaySize = { width: videoRef.current.width, height: videoRef.current.height };
-      faceapi.matchDimensions(canvas, displaySize);
-
-      setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        faceapi.draw.drawDetections(canvas, resizedDetections);
-        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-
-        if (detections.length > 0) {
-          setIsHumanDetected(true);
-        } else {
-          setIsHumanDetected(false);
-        }
-      }, 100);
-    });
   }, []);
 
   const startCamera = () => {
-    navigator.mediaDevices.getUserMedia({ video: {} })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // Usa la cámara trasera del móvil
       .then(stream => {
-        // Reproduce el stream de la cámara
-        videoRef.current.srcObject = stream;
+        const videoElement = document.createElement('video');
+        videoElement.srcObject = stream;
+        videoElement.play();
+
+        videoElement.addEventListener('play', () => {
+          const interval = setInterval(async () => {
+            try {
+              const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions());
+
+              if (detections.length > 0) {
+                setIsHumanDetected(true);
+              } else {
+                setIsHumanDetected(false);
+              }
+            } catch (err) {
+              console.error('Error during face detection:', err);
+            }
+          }, 100);
+
+          videoElement.addEventListener('pause', () => {
+            clearInterval(interval);
+          });
+        });
       })
-      .catch(err => console.error('Error accessing webcam: ', err));
+      .catch(err => console.error('Error accessing webcam:', err));
   };
 
   useEffect(() => {
     if (isHumanDetected) {
-      // Cambia la fuente del video a tu archivo de video
-      videoRef.current.src={Video};
-      videoRef.current.play();
-    } else {
-      videoRef.current.pause();
+      alert('Ojos detectados'); // Muestra un mensaje emergente
     }
   }, [isHumanDetected]);
 
   return (
     <div>
-      <video ref={videoRef} width="720" height="560" controls />
-      <div ref={canvasRef}></div>
+      <video
+        ref={videoRef}
+        width="720"
+        height="560"
+        loop
+        autoPlay
+        muted
+        style={{
+          filter: isHumanDetected ? 'none' : 'blur(10px)', // Aplica o quita el blur según la detección
+          transition: 'filter 0.3s ease-in-out', // Transición suave entre estados
+        }}
+        src={Video}
+      />
     </div>
   );
 };
