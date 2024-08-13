@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as faceapi from 'face-api.js';
+import Video from "../src/assets/playa.mp4"
+
+
 
 const VideoPlayer = () => {
   const videoRef = useRef(null);
@@ -13,7 +16,7 @@ const VideoPlayer = () => {
     };
 
     loadModels();
-    startVideo();
+    startCamera();
 
     videoRef.current.addEventListener('play', () => {
       const canvas = faceapi.createCanvasFromMedia(videoRef.current);
@@ -37,9 +40,10 @@ const VideoPlayer = () => {
     });
   }, []);
 
-  const startVideo = () => {
+  const startCamera = () => {
     navigator.mediaDevices.getUserMedia({ video: {} })
       .then(stream => {
+        // Reproduce el stream de la cámara
         videoRef.current.srcObject = stream;
       })
       .catch(err => console.error('Error accessing webcam: ', err));
@@ -47,6 +51,8 @@ const VideoPlayer = () => {
 
   useEffect(() => {
     if (isHumanDetected) {
+      // Cambia la fuente del video a tu archivo de video
+      videoRef.current.src={Video};
       videoRef.current.play();
     } else {
       videoRef.current.pause();
@@ -55,7 +61,7 @@ const VideoPlayer = () => {
 
   return (
     <div>
-      <video ref={videoRef} width="720" height="560" autoPlay muted />
+      <video ref={videoRef} width="720" height="560" controls />
       <div ref={canvasRef}></div>
     </div>
   );
