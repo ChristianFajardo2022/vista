@@ -79,7 +79,7 @@ const VideoPlayer = () => {
           borderRadius: '10px',
           opacity: showPopup ? 1 : 0,
           transition: 'opacity 0.5s ease-in-out',
-          fontSize: "40px",
+          fontSize: "30px",
         }}>
           Ojos detectados
         </div>
