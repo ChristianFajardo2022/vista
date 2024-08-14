@@ -2,3 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    @apply h-screen;
+    margin: 0;
+    padding: 0;
+}
+body {
+    @apply  flex justify-center items-center m-0 p-0 h-full ;
+  }

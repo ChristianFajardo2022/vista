@@ -4,7 +4,7 @@ import Video from "../src/assets/playa.mp4";
 
 const VideoPlayer = () => {
   const videoRef = useRef(null);
-  const [isHumanDetected, setIsHumanDetected] = useState(false);
+  const [hasDetectedFace, setHasDetectedFace] = useState(false);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -21,7 +21,7 @@ const VideoPlayer = () => {
   }, []);
 
   const startCamera = () => {
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }) // Usa la cámara trasera del móvil
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       .then(stream => {
         const videoElement = document.createElement('video');
         videoElement.srcObject = stream;
@@ -32,10 +32,9 @@ const VideoPlayer = () => {
             try {
               const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions());
 
-              if (detections.length > 0) {
-                setIsHumanDetected(true);
-              } else {
-                setIsHumanDetected(false);
+              if (detections.length > 0 && !hasDetectedFace) {
+                setHasDetectedFace(true);
+                alert('Ojos detectados'); // Muestra un mensaje emergente solo la primera vez
               }
             } catch (err) {
               console.error('Error during face detection:', err);
@@ -50,23 +49,18 @@ const VideoPlayer = () => {
       .catch(err => console.error('Error accessing webcam:', err));
   };
 
-  useEffect(() => {
-    if (isHumanDetected) {
-      alert('Ojos detectados'); // Muestra un mensaje emergente
-    }
-  }, [isHumanDetected]);
-
   return (
-    <div>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
       <video
         ref={videoRef}
-        width="720"
-        height="560"
         loop
         autoPlay
         muted
         style={{
-          filter: isHumanDetected ? 'none' : 'blur(10px)', // Aplica o quita el blur según la detección
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover', // Hace que el video ocupe toda la pantalla manteniendo la relación de aspecto
+          filter: hasDetectedFace ? 'none' : 'blur(10px)', // Aplica o quita el blur según la detección
           transition: 'filter 0.3s ease-in-out', // Transición suave entre estados
         }}
         src={Video}
