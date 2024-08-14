@@ -81,7 +81,7 @@ const VideoPlayer = () => {
           transition: 'opacity 0.5s ease-in-out',
           fontSize: "30px",
         }}>
-          Ojos detectados
+          Ojos detectados con exito!
         </div>
       )}
     </div>
