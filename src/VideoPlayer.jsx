@@ -5,6 +5,7 @@ import Video from "../src/assets/playa.mp4";
 const VideoPlayer = () => {
   const videoRef = useRef(null);
   const [hasDetectedFace, setHasDetectedFace] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const loadModels = async () => {
@@ -33,24 +34,25 @@ const VideoPlayer = () => {
               const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions());
 
               if (detections.length > 0 && !hasDetectedFace) {
+                clearInterval(interval); // Detener la detección inmediatamente
                 setHasDetectedFace(true);
-                alert('Ojos detectados'); // Muestra un mensaje emergente solo la primera vez
+                setShowPopup(true); // Mostrar el popup
+
+                setTimeout(() => {
+                  setShowPopup(false); // Desvanecer el popup después de 2 segundos
+                }, 2000);
               }
             } catch (err) {
               console.error('Error during face detection:', err);
             }
           }, 100);
-
-          videoElement.addEventListener('pause', () => {
-            clearInterval(interval);
-          });
         });
       })
       .catch(err => console.error('Error accessing webcam:', err));
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       <video
         ref={videoRef}
         loop
@@ -65,6 +67,23 @@ const VideoPlayer = () => {
         }}
         src={Video}
       />
+      {showPopup && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          padding: '200px',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          borderRadius: '10px',
+          opacity: showPopup ? 1 : 0,
+          transition: 'opacity 0.5s ease-in-out',
+          fontSize: "40px",
+        }}>
+          Ojos detectados
+        </div>
+      )}
     </div>
   );
 };
