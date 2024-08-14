@@ -86,6 +86,7 @@ const EmotionDetector = () => {
         }}
         onPlay={handlePlay}
         muted
+        playsInline
       />
       <canvas
         ref={canvasRef}
